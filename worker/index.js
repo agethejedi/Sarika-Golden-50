@@ -295,7 +295,7 @@ export default {
       const key = 'approval/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
       await env.BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
 
-      const url = 'https://YOUR_R2_PUBLIC_URL/' + key
+      const url = `https://pub-67f4eb0e92314b19892e15bb041c1925.r2.dev${key}`
 
       const id = crypto.randomUUID()
       const created_at = new Date().toISOString()
