@@ -73,8 +73,7 @@ async function verifyJWT(token, secret) {
 // ── CORS ──────────────────────────────────────────────────────────────────
 
 var ALLOWED_ORIGINS = [
-  'https://sarika-golden-50.pages.dev',
-  'https://43e83a51.sarika-golden-50.pages.dev'
+  'https://sarika-golden-50.pages.dev'
 ]
 
 function getCORS(request) {
