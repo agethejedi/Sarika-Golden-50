@@ -166,7 +166,7 @@ export default {
       var ext = file.name.split('.').pop()
       var key = 'posts/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
       await env.BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
-      var mediaUrl = 'https://YOUR_R2_PUBLIC_URL/' + key
+      var mediaUrl = 'https://pub-67f4eb0e92314b19892e15bb041c1925.r2.dev/' + key
       var id = crypto.randomUUID()
       var now = new Date().toISOString()
       await env.DB.prepare(
@@ -235,7 +235,7 @@ export default {
       var ext = file.name.split('.').pop()
       var key = 'approval/' + Date.now() + '-' + Math.random().toString(36).slice(2) + '.' + ext
       await env.BUCKET.put(key, file.stream(), { httpMetadata: { contentType: file.type } })
-      var fileUrl = 'pub-67f4eb0e92314b19892e15bb041c1925.r2.dev' + key
+      var fileUrl = 'https://pub-67f4eb0e92314b19892e15bb041c1925.r2.dev/' + key
       var id = crypto.randomUUID()
       var now = new Date().toISOString()
       await env.DB.prepare(
