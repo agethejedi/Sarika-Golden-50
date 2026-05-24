@@ -1,23 +1,15 @@
-name = "sarika-golden-50-api"
+name = "sarika-golden-50"
 main = "worker/index.js"
 compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "sarika-golden-50"
-database_id = "YOUR_D1_DATABASE_ID"   # replace after creating D1 in dashboard
+database_id = "05f946a8-e59e-4c83-a3c4-dee2d22e93b1"
 
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "sarika-golden-50-media"
-
-# Secrets — set via: wrangler secret put ADMIN_PASSWORD
-# or Cloudflare Dashboard → Workers → sarika-golden-50-api → Settings → Variables
-# ADMIN_PASSWORD
-# SARIKA_PASSWORD
-# JWT_SECRET
-# ANTHROPIC_API_KEY
 
 [vars]
 ENVIRONMENT = "production"
