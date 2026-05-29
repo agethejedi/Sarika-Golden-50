@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { api } from '../lib/api.js'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useToast } from '../hooks/useToast.js'
-import { TrashIcon, SparkleIcon, CheckIcon, XIcon } from '../components/Icons.jsx'
 import { Navigate } from 'react-router-dom'
+import { Lightbox } from '../components/Lightbox.jsx'
 
 export function AdminPage() {
   const { user, logout, isAdmin, isSarika } = useAuth()
-
   if (!user) return <Navigate to="/" />
   if (isSarika) return <SarikaApprovalView />
   if (isAdmin) return <AdminView />
@@ -24,6 +23,7 @@ function AdminView() {
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(true)
   const [showUploadForApproval, setShowUploadForApproval] = useState(false)
+  const [lightboxUrl, setLightboxUrl] = useState(null)
   const { toast, showToast } = useToast()
 
   useEffect(() => {
@@ -80,7 +80,12 @@ function AdminView() {
           ) : (
             queue.map(item => (
               <div key={item.id} className="card-surface" style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <img src={item.url} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 'var(--radius-sm)', flexShrink: 0 }} />
+                <img
+                  src={item.url}
+                  alt=""
+                  onClick={() => setLightboxUrl(item.url)}
+                  style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 'var(--radius-sm)', flexShrink: 0, cursor: 'zoom-in' }}
+                />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.caption || 'No caption'}
@@ -90,7 +95,7 @@ function AdminView() {
                       Sarika: "{item.sarika_comment}"
                     </p>
                   )}
-                  <span className={`badge badge-${item.status}`}>
+                  <span className={'badge badge-' + item.status}>
                     {item.status === 'pending' ? '⏳ Pending' : item.status === 'approved' ? '✓ Approved' : item.status === 'enhance' ? '✨ Enhance' : '✗ Denied'}
                   </span>
                 </div>
@@ -112,11 +117,26 @@ function AdminView() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
               {posts.map(p => (
-                <div key={p.id} style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', borderRadius: 'var(--radius-sm)', border: p.featured ? '2px solid var(--gold-mid)' : '1px solid var(--dark-border)' }}>
-                  {p.type === 'video'
-                    ? <div style={{ width: '100%', height: '100%', background: 'var(--dark-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🎬</div>
-                    : <img src={p.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  }
+                <div
+                  key={p.id}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '1',
+                    overflow: 'hidden',
+                    borderRadius: 'var(--radius-sm)',
+                    border: p.featured ? '2px solid var(--gold-mid)' : '1px solid var(--dark-border)'
+                  }}
+                >
+                  {p.type === 'video' ? (
+                    <div style={{ width: '100%', height: '100%', background: 'var(--dark-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🎬</div>
+                  ) : (
+                    <img
+                      src={p.url}
+                      alt=""
+                      onClick={() => setLightboxUrl(p.url)}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', cursor: 'zoom-in' }}
+                    />
+                  )}
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', background: 'rgba(0,0,0,0.65)' }}>
                     <button onClick={() => handleFeature(p.id)} style={{ flex: 1, background: 'none', border: 'none', padding: '4px', cursor: 'pointer', fontSize: '0.7rem', color: p.featured ? 'var(--gold-mid)' : 'rgba(255,255,255,0.5)' }}>★</button>
                     <button onClick={() => handleDelete(p.id)} style={{ flex: 1, background: 'none', border: 'none', padding: '4px', cursor: 'pointer', color: 'rgba(231,76,60,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -137,6 +157,7 @@ function AdminView() {
         />
       )}
 
+      {lightboxUrl && <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
       {toast && <div className="toast">{toast}</div>}
     </div>
   )
@@ -160,8 +181,7 @@ function SubmitForApprovalModal({ onClose, onSubmit }) {
   const handleSubmit = async () => {
     if (!file) return
     setLoading(true)
-    try { await onSubmit(file, caption) }
-    catch {}
+    try { await onSubmit(file, caption) } catch {}
     setLoading(false)
   }
 
@@ -173,7 +193,6 @@ function SubmitForApprovalModal({ onClose, onSubmit }) {
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', marginBottom: '1rem', lineHeight: 1.5 }}>
           Sarika will review this photo and can approve, deny, or request enhancement before it goes live.
         </p>
-
         {!preview ? (
           <div className="upload-area" onClick={() => fileRef.current?.click()}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🖼️</div>
@@ -181,9 +200,8 @@ function SubmitForApprovalModal({ onClose, onSubmit }) {
             <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
           </div>
         ) : (
-          <img src={preview} alt="" style={{ width: '100%', borderRadius: 'var(--radius-md)', maxHeight: 220, objectFit: 'cover', display: 'block', marginBottom: '0.75rem' }} />
+          <img src={preview} alt="" style={{ width: '100%', borderRadius: 'var(--radius-md)', maxHeight: 220, objectFit: 'contain', display: 'block', marginBottom: '0.75rem', background: 'var(--dark-surface)' }} />
         )}
-
         <textarea className="textarea" placeholder="Caption or notes for Sarika…" value={caption} onChange={e => setCaption(e.target.value)} style={{ marginTop: '0.75rem' }} rows={2} />
         <button className="btn btn-gold btn-full" style={{ marginTop: '0.75rem' }} onClick={handleSubmit} disabled={loading || !file}>
           {loading ? 'Sending…' : '👑 Send to Sarika'}
@@ -204,6 +222,7 @@ function SarikaApprovalView() {
   const [aiSuggestion, setAiSuggestion] = useState({})
   const [aiLoading, setAiLoading] = useState({})
   const [comments, setComments] = useState({})
+  const [lightboxUrl, setLightboxUrl] = useState(null)
   const { toast, showToast } = useToast()
 
   useEffect(() => {
@@ -261,7 +280,26 @@ function SarikaApprovalView() {
         ) : (
           queue.map(item => (
             <div key={item.id} className="approval-card" style={{ marginBottom: '1.5rem' }}>
-              <img src={item.url} alt={item.caption || ''} />
+
+              {/* Full image — tappable to expand */}
+              <div
+                onClick={() => setLightboxUrl(item.url)}
+                style={{ cursor: 'zoom-in', position: 'relative', background: 'var(--dark-surface)' }}
+              >
+                <img
+                  src={item.url}
+                  alt={item.caption || ''}
+                  style={{ width: '100%', display: 'block', maxHeight: 420, objectFit: 'contain' }}
+                />
+                <div style={{
+                  position: 'absolute', bottom: '0.5rem', right: '0.5rem',
+                  background: 'rgba(0,0,0,0.55)', borderRadius: 20, padding: '3px 10px',
+                  fontSize: '0.6rem', color: 'rgba(255,255,255,0.7)',
+                  fontFamily: "'Cinzel', serif", letterSpacing: '0.06em', pointerEvents: 'none'
+                }}>
+                  ⛶ EXPAND
+                </div>
+              </div>
 
               {item.caption && (
                 <div style={{ padding: '0.75rem 0.9rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -317,6 +355,7 @@ function SarikaApprovalView() {
         )}
       </div>
 
+      {lightboxUrl && <Lightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />}
       {toast && <div className="toast">{toast}</div>}
     </div>
   )
